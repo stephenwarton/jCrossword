@@ -1,4 +1,4 @@
-const API_URL = 'http://jservice.io/api/random?count=10';
+const API_URL = 'https://galvanize-cors-proxy.herokuapp.com/http://jservice.io/api/random?count=10';
 let answerArray = [];
 $(appReady);
 
