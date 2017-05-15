@@ -1,5 +1,5 @@
 # jCrossword
-* https://jcrossword-e700c.firebaseapp.com/crossword.html
+* Hosted at: https://jcrossword-e700c.firebaseapp.com/index.html
 
 ## Project Description
 * A crossword generator based on Jeopardy trivia. A user can fill in the crossword puzzle and attempt to solve it.
