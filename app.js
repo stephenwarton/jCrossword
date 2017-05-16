@@ -57,7 +57,8 @@ function main(result){
   placeWords();
   console.log(placedWords);
   console.log(crossword);
-  display();
+  displayCrossword();
+  displayClues();
 }
 
 function placeWords(){
@@ -163,15 +164,27 @@ function canBePlaced(startIndex,word,direction){
   return true;
 }
 
-function display(){
+function displayCrossword(){
   for(let i=0;i<15; i++) {
     for(let j=0;j<15;j++){
       let input = $('<input type="text" size="1" maxlength="1">');
       if(crossword[i][j]=== '#'){
         $(input).css('background','black');
       }
-      $('.lead').append(input);
+      $('.crossword').append(input);
     }
-    $('.lead').append('<br>');
+    $('.crossword').append('<br>');
+  }
+}
+
+function displayClues(){
+  for(let object of placedWords){
+    console.log(object.clue);
+    let clue = $(`<p>${object.clue}</p>`)
+    if(object.direction === 'across'){
+      $('.across').append(clue);
+    } else if(object.direction === 'down'){
+      $('.down').append(clue);
+    }
   }
 }
