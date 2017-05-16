@@ -23,7 +23,6 @@ function createAnswerArray(result){
   answerArray.sort(function(a,b){
     return b.word.length-a.word.length;
   });
-  console.log(answerArray);
 }
 
 function cleanAnswer(answerString){
@@ -56,7 +55,6 @@ function main(result){
   initialize(crossword);
   placeWords();
   console.log(placedWords);
-  console.log(crossword);
   displayCrossword();
   displayClues();
 }
@@ -179,7 +177,6 @@ function displayCrossword(){
 
 function displayClues(){
   for(let object of placedWords){
-    console.log(object.clue);
     let clue = $(`<p>${object.clue}</p>`)
     if(object.direction === 'across'){
       $('.across').append(clue);
