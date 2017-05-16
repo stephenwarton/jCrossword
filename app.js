@@ -72,7 +72,6 @@ function placeWords(){
         } else if(index.length !== 0 && index[2] === 'down'){
           placeAcross(answerArray[i],index[1],index[0]);
         }
-        //console.log('place other word');
     }
   }
 }
@@ -121,7 +120,6 @@ function placeDown(clueAnswerObject, charIndex, crossIndex){
   let start = y-aboveAmount;
   if(start>=0 && y+belowAmount <15 ){
     if(canBePlaced([start,x],word,'down')){
-      //console.log("I'm here");
       //push to placedWords
       clueAnswerObject.direction = 'down';
       clueAnswerObject.startPosition = [start,x];
@@ -132,12 +130,11 @@ function placeDown(clueAnswerObject, charIndex, crossIndex){
         start += 1;
       }
     }
-
   }
 }
 
 function placeAcross(clueAnswerObject, charIndex, crossIndex){
-
+//todo later
 }
 
 function canBePlaced(startIndex,word,direction){
@@ -168,6 +165,7 @@ function displayCrossword(){
       let input = $('<input type="text" size="1" maxlength="1">');
       if(crossword[i][j]=== '#'){
         $(input).css('background','black');
+        $(input).attr('disabled', true);
       }
       $('.crossword').append(input);
     }
@@ -176,12 +174,14 @@ function displayCrossword(){
 }
 
 function displayClues(){
+  let clueNumber = 1;
   for(let object of placedWords){
-    let clue = $(`<p>${object.clue}</p>`)
+    let clue = $(`<p>${clueNumber}. ${object.clue}</p>`)
     if(object.direction === 'across'){
       $('.across').append(clue);
     } else if(object.direction === 'down'){
       $('.down').append(clue);
     }
+    clueNumber++;
   }
 }
