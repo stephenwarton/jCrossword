@@ -21,3 +21,11 @@ body {
 .navbar-inverse .navbar-nav>li>a:hover {
   font-weight: bold;
 }
+
+input {
+  border: solid 1px;
+  padding: 0px;
+  margin: 0px;
+  text-align: center;
+  font-size: 1.5em;
+}
