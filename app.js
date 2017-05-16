@@ -31,14 +31,13 @@ function cleanAnswer(answerString){
   if(/^[A-Z]+$/.test(newAnswer)){
     return newAnswer;
   } else if(/^THE\s/.test(newAnswer)){
-    return cleanAnswer(newAnswer.slice(4, newAnswer.length));
+      return cleanAnswer(newAnswer.slice(4, newAnswer.length));
   } else if(/^A\s/.test(newAnswer)){
-    return cleanAnswer(newAnswer.slice(2, newAnswer.length));
+      return cleanAnswer(newAnswer.slice(2, newAnswer.length));
   } else if(/^<I>/.test(newAnswer)){
-    return cleanAnswer(newAnswer.slice(3, newAnswer.length-4));
-  }
-  else {
-    return '';
+      return cleanAnswer(newAnswer.slice(3, newAnswer.length-4));
+  } else {
+      return '';
   }
 }
 
@@ -50,7 +49,6 @@ function initialize(crossword){
     }
   crossword.push(array);
   }
-  console.log(crossword);
 }
 
 function main(result){
@@ -59,16 +57,23 @@ function main(result){
   placeWords();
   console.log(placedWords);
   console.log(crossword);
+  display();
 }
 
 function placeWords(){
+  let index = [];
   for(let i=0;i<answerArray.length;i++){
     if(placedWords.length === 0 && answerArray[i].word.length <= 15){
       placeFirst(answerArray[i]);
     } else {
-      //check shared characters
-      //try to place at intersection
-      console.log('place other word');
+        index = getIndexOfMatch(answerArray[i]);
+        //try to place at intersection
+        if(index.length !== 0 && index[2] === 'across'){
+          placeDown(answerArray[i],index[1], index[0]);
+        } else if(index.length !== 0 && index[2] === 'down'){
+          placeAcross(answerArray[i],index[1],index[0]);
+        }
+        //console.log('place other word');
     }
   }
 }
@@ -82,4 +87,91 @@ function placeFirst(clueAnswerObject){
   clueAnswerObject.startPosition = [y,0];
   clueAnswerObject.direction = 'across';
   placedWords.push(clueAnswerObject);
+}
+
+function getIndexOfMatch(clueAnswerObject){
+  let word = clueAnswerObject.word;
+  let index = [];
+  for(let i=0; i<word.length; i++){
+    let char = word.charAt(i);
+    for(let j=0; j<placedWords.length;j++){
+      for(let k=0; k<placedWords[j].word.length;k++){
+        if(char === placedWords[j].word.charAt(k)){
+          let y = placedWords[j].startPosition[0];
+          let x = placedWords[j].startPosition[1];
+          if(placedWords[j].direction === 'across'){
+            x += k;
+          } else if(placedWords[j].direction === 'down'){
+              y += k;
+          }
+          index = [y,x];
+          return [index,i,placedWords[j].direction];
+        }
+      }
+    }
+  }
+  return index;
+}
+
+function placeDown(clueAnswerObject, charIndex, crossIndex){
+  let word = clueAnswerObject.word;
+  let aboveAmount = charIndex;
+  let belowAmount = word.length - charIndex;
+  let y = crossIndex[0];
+  let x = crossIndex[1];
+  let start = y-aboveAmount;
+  if(start>=0 && y+belowAmount <15 ){
+    if(canBePlaced([start,x],word,'down')){
+      //console.log("I'm here");
+      //push to placedWords
+      clueAnswerObject.direction = 'down';
+      clueAnswerObject.startPosition = [start,x];
+      placedWords.push(clueAnswerObject);
+      //add to crossword
+      for(let i=0; i<word.length;i++){
+        crossword[start][x] = word.charAt(i);
+        start += 1;
+      }
+    }
+
+  }
+}
+
+function placeAcross(clueAnswerObject, charIndex, crossIndex){
+
+}
+
+function canBePlaced(startIndex,word,direction){
+  let y = startIndex[0];
+  let x = startIndex[1];
+
+  if(direction === 'down'){
+    for(let i=0;i<word.length;i++){
+      //check for another vertical word here
+      if(crossword[y][x] !== '#' &&  crossword[y][x] !== word.charAt(i)){
+        return false;
+
+        //check to see if neighbors are occupied
+      } else if(crossword[y][x] === '#'){
+          if(crossword[y][x-1] !== '#' || crossword[y][1+x] !== '#'){
+            return false;
+          }
+      }
+      y++;
+    }
+  }
+  return true;
+}
+
+function display(){
+  for(let i=0;i<15; i++) {
+    for(let j=0;j<15;j++){
+      let input = $('<input type="text" size="1" maxlength="1">');
+      if(crossword[i][j]=== '#'){
+        $(input).css('background','black');
+      }
+      $('.lead').append(input);
+    }
+    $('.lead').append('<br>');
+  }
 }
