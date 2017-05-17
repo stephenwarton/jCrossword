@@ -1,7 +1,10 @@
-const API_URL = 'https://galvanize-cors-proxy.herokuapp.com/http://jservice.io/api/random?count=100';
+const API_URL = 'https://galvanize-cors-proxy.herokuapp.com/http://jservice.io/api/random?count=50';
 let answerArray = [];
 let crossword = [];
 let placedWords = [];
+let selectedID ='';
+let previousID = '';
+let direction = 'across';
 
 $(appReady);
 
@@ -197,3 +200,22 @@ function displayClues(){
     clueNumber++;
   }
 }
+
+$('.crossword').on("click",function(event){
+  event.preventDefault();
+  let backgroundColor = $(event.target).css('background-color');
+  //$(event.target).css('background-color','black');
+  if(backgroundColor === 'rgb(255, 255, 255)'){
+    $(previousID).css('background-color','white');
+    selectedID = '#'+event.target.id;
+    previousID = selectedID;
+    $(selectedID).css('background-color','rgb(179, 240, 247)');
+  }
+});
+
+$(document).on('keydown',function(event){
+  let char = String.fromCharCode(event.keyCode);
+  if(/[a-zA-Z]/.test(char)){
+    $(selectedID).text(char);
+  }
+});
