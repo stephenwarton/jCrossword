@@ -27,10 +27,14 @@ input {
   padding: 0px;
   margin: 0px;
   text-align: center;
-  font-size: 1em;
+  font-size: 1.5em;
   border-radius: 0;
 }
 
 .row {
-  margin: 3em;
+  padding-top: 3em;
+}
+
+.crossword {
+  white-space: nowrap;
 }
