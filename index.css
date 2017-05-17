@@ -21,3 +21,7 @@ body {
 .navbar-inverse .navbar-nav>li>a:hover {
   font-weight: bold;
 }
+
+.row {
+  margin: 3em;
+}

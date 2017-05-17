@@ -161,15 +161,23 @@ function canBePlaced(startIndex,word,direction){
 
 function displayCrossword(){
   for(let i=0;i<15; i++) {
+    let rowContainer = $('<div></div>');
+    $(rowContainer).addClass(''+i);
+    $(rowContainer).css('display','flex');
+    $('.crossword').append(rowContainer);
     for(let j=0;j<15;j++){
-      let input = $('<input type="text" size="1" maxlength="1">');
+      let square = $(`<div></div>`);
+      $(square).attr('id',''+i+'-'+j);
+      $(square).css('width', '3vw');
+      $(square).css('height', '3vw');
+      $(square).css('border', '1px solid black');
       if(crossword[i][j]=== '#'){
-        $(input).css('background','black');
-        $(input).attr('disabled', true);
+        $(square).css('background','black');
+      } else {
+        $(square).css('background','white');
       }
-      $('.crossword').append(input);
+      $('.'+i).append(square);
     }
-    $('.crossword').append('<br>');
   }
 }
 
@@ -177,11 +185,15 @@ function displayClues(){
   let clueNumber = 1;
   for(let object of placedWords){
     let clue = $(`<p>${clueNumber}. ${object.clue}</p>`)
+    let y = object.startPosition[0];
+    let x = object.startPosition[1];
     if(object.direction === 'across'){
       $('.across').append(clue);
     } else if(object.direction === 'down'){
       $('.down').append(clue);
     }
+    id = '#'+y+'-'+x;
+    $(''+id).text(''+clueNumber);
     clueNumber++;
   }
 }
