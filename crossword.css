@@ -25,3 +25,7 @@ body {
 .row {
   padding-top: 3em;
 }
+
+.btn-group>.btn:first-child {
+    margin-left: 15px;
+}

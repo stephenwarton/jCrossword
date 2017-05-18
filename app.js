@@ -213,13 +213,40 @@ function displayClues(){
 $('.crossword').on("click",function(event){
   event.preventDefault();
   let backgroundColor = $(event.target).css('background-color');
-  if(backgroundColor === 'rgb(255, 255, 255)'){
+  if(backgroundColor !== 'rgb(0, 0, 0)'){
     $(previousID).css('background-color','white');
     selectedID = '#'+event.target.id;
     previousID = selectedID;
     $(selectedID).css('background-color','rgb(179, 240, 247)');
   }
 });
+
+$('.check-answers').on("click",function(event){
+  event.preventDefault();
+
+  for(let y=0;y<15;y++){
+    for(let x=0;x<15;x++){
+      let id=`#${y}-${x}`;
+      if(crossword[y][x] !== '#'){
+        if(isEqual(y,x,id)){
+          $(id).css('background-color','#dff0d8');
+        } else {
+            $(id).css('background-color','#f2dede');
+        }
+      }
+    }
+  }
+});
+
+function isEqual(y,x,id){
+  let match = $(id).text().match(/[A-Z]/);
+  if(match){
+    if(match[0] === crossword[y][x]){
+      return true;
+    }
+  }
+  return false;
+}
 
 $(document).on('keydown',function(event){
   event.preventDefault();
@@ -245,7 +272,7 @@ $(document).on('keydown',function(event){
 
 function goToNext(){
   let nextID = getNextID();
-  if($(nextID).css('background-color') === 'rgb(255, 255, 255)'){
+  if($(nextID).css('background-color') !== 'rgb(0, 0, 0)'){
     $(previousID).css('background-color','white');
     selectedID = nextID;
     previousID = selectedID;
