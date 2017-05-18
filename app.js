@@ -5,6 +5,7 @@ let placedWords = [];
 let selectedID ='';
 let previousID = '';
 let direction = 'across';
+let placedWordsIndex = 0;
 
 $(appReady);
 
@@ -307,14 +308,63 @@ $('p').on("click", '.reveal', function(){
 $(document).on('keydown',function(event){
   event.preventDefault();
   let char = String.fromCharCode(event.keyCode);
-  if(event.keyCode === 9 || event.keyCode === 32){
+  //space, right arrow
+  if(event.keyCode === 32 || event.keyCode === 39){
     direction = 'across';
     goToNext();
   }
-  if(event.keyCode === 13){
+  //enter, down arrow
+  if(event.keyCode === 13 || event.keyCode === 40){
     direction = 'down';
     goToNext();
   }
+  //left arrow
+  if(event.keyCode === 37){
+    direction = 'back';
+    goToNext();
+    direction = 'across';
+  }
+  //up arrow
+  if(event.keyCode === 38){
+    direction = 'up';
+    goToNext();
+    direction = 'down';
+  }
+  //tab - cycle through start positions
+  if(event.keyCode === 9){
+    if(placedWordsIndex >= placedWords.length){
+      placedWordsIndex = 0;
+    }
+    let y=placedWords[placedWordsIndex].startPosition[0];
+    let x=placedWords[placedWordsIndex].startPosition[1];
+    direction = placedWords[placedWordsIndex].direction;
+    $(previousID).css('background-color','white');
+    selectedID = `#${y}-${x}`;
+    previousID = selectedID;
+    $(selectedID).css('background-color','rgb(179, 240, 247)');
+    placedWordsIndex++;  
+  }
+  //backspace/delete
+  if(event.keyCode === 8){
+    //erase current letter if needed
+    let match = $(selectedID).text().match(/[0-9]+/);
+    if(match){
+      $(selectedID).text(match[0]);
+    } else {
+        $(selectedID).text('');
+    }
+    //go back or up a space
+    if(direction === 'across'){
+      direction = 'back';
+      goToNext();
+      direction = 'across';
+    } else if (direction === 'down'){
+      direction = 'up';
+      goToNext();
+      direction = 'down';
+    }
+  }
+  //any letter key
   if(/[a-zA-Z]/.test(char)){
     let match = $(selectedID).text().match(/[0-9]+/);
     if(match){
@@ -328,7 +378,7 @@ $(document).on('keydown',function(event){
 
 function goToNext(){
   let nextID = getNextID();
-  if($(nextID).css('background-color') !== 'rgb(0, 0, 0)'){
+  if(nextID && $(nextID).css('background-color') !== 'rgb(0, 0, 0)'){
     $(previousID).css('background-color','white');
     selectedID = nextID;
     previousID = selectedID;
@@ -343,11 +393,17 @@ function getNextID(){
   let x = index[1];
   if(direction === 'across'){
     x = parseInt(x)+1;
-    nextID = `#${y}-${x}`;
-  }
-  if(direction === 'down'){
+  } else if(direction === 'down'){
     y = parseInt(y)+1;
-    nextID = `#${y}-${x}`;
+  } else if(direction === 'back'){
+    x = parseInt(x)-1;
+  } else if(direction === 'up'){
+    y = parseInt(y)-1;
   }
+  if(y <0 || x< 0){
+    return false;
+  }
+
+  nextID = `#${y}-${x}`;
   return nextID;
 }
