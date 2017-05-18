@@ -196,14 +196,15 @@ function displayCrossword(){
 function displayClues(){
   let clueNumber = 1;
   for(let object of placedWords){
-    let clue = $(`<p>${clueNumber}. ${object.clue}</p>`)
     let y = object.startPosition[0];
     let x = object.startPosition[1];
+    let clue = $(`<p>${clueNumber}. ${object.clue}</p><p><button type="button" class="btn btn-default reveal solve-${y}-${x}">Reveal Word for Clue ${clueNumber}</button></p`);
     if(object.direction === 'across'){
       $('.across').append(clue);
     } else if(object.direction === 'down'){
       $('.down').append(clue);
     }
+    //add clue number to crossword puzzle
     id = '#'+y+'-'+x;
     $(''+id).text(''+clueNumber);
     clueNumber++;
@@ -237,6 +238,16 @@ $('.check-answers').on("click",function(event){
   }
 });
 
+function isEqual(y,x,id){
+  let match = $(id).text().match(/[A-Z]/);
+  if(match){
+    if(match[0] === crossword[y][x]){
+      return true;
+    }
+  }
+  return false;
+}
+
 $('.solve-box').on("click",function(event){
   event.preventDefault();
   let index = selectedID.match(/[0-9]+/g);
@@ -267,15 +278,31 @@ $('.solve-puzzle').on("click",function(event){
   }
 });
 
-function isEqual(y,x,id){
-  let match = $(id).text().match(/[A-Z]/);
-  if(match){
-    if(match[0] === crossword[y][x]){
-      return true;
+$('p').on("click", '.reveal', function(){
+  let buttonText = $(this).text();
+  let clueNumber = buttonText.charAt(buttonText.length-1);
+  let wordObject = placedWords[parseInt(clueNumber)-1];
+  let word = wordObject.word;
+  let y=wordObject.startPosition[0];
+  let x=wordObject.startPosition[1];
+  let id = `#${y}-${x}`;
+  let wordDirection = wordObject.direction;
+
+  for(let i=0; i<word.length; i++){
+    id = `#${y}-${x}`;
+    let match = $(id).text().match(/[0-9]+/);
+    if(match){
+      $(id).text(match[0]+' '+crossword[y][x]);
+    } else {
+        $(id).text(crossword[y][x]);
+    }
+    if(wordDirection === 'across'){
+      x++;
+    } else if(wordDirection === 'down'){
+      y++;
     }
   }
-  return false;
-}
+});
 
 $(document).on('keydown',function(event){
   event.preventDefault();
