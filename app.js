@@ -188,6 +188,10 @@ function displayCrossword(){
       } else {
         $(square).css('background','white');
         $(square).attr('contenteditable','true');
+        $(square).css('display','flex');
+        $(square).css('justify-content','center');
+        $(square).css('align-items','center');
+        $(square).css('font-weight','bold');
       }
       $('.'+i).append(square);
     }
@@ -207,7 +211,7 @@ function displayClues(){
     }
     //add clue number to crossword puzzle
     id = '#'+y+'-'+x;
-    $(''+id).text(''+clueNumber);
+    $(''+id).append('<sup>'+clueNumber+'</sup>');
     clueNumber++;
   }
 }
@@ -256,7 +260,8 @@ $('.solve-box').on("click",function(event){
   let x = index[1];
   let match = $(selectedID).text().match(/[0-9]+/);
   if(match){
-    $(selectedID).text(match[0]+' '+crossword[y][x]);
+    $(selectedID).text('');
+    $(selectedID).append('<sup>'+match[0]+'</sup>'+' '+crossword[y][x]);
   } else {
       $(selectedID).text(crossword[y][x]);
   }
@@ -270,7 +275,8 @@ $('.solve-puzzle').on("click",function(event){
       if(crossword[y][x] !== '#'){
         let match = $(id).text().match(/[0-9]+/);
         if(match){
-          $(id).text(match[0]+' '+crossword[y][x]);
+          $(id).text('');
+          $(id).append('<sup>'+match[0]+'</sup>'+' '+crossword[y][x]);
         } else {
             $(id).text(crossword[y][x]);
         }
@@ -293,7 +299,8 @@ $('p').on("click", '.reveal', function(){
     id = `#${y}-${x}`;
     let match = $(id).text().match(/[0-9]+/);
     if(match){
-      $(id).text(match[0]+' '+crossword[y][x]);
+      $(id).text('');
+      $(id).append('<sup>'+match[0]+'</sup>'+' '+crossword[y][x]);
     } else {
         $(id).text(crossword[y][x]);
     }
@@ -342,14 +349,15 @@ $(document).on('keydown',function(event){
     selectedID = `#${y}-${x}`;
     previousID = selectedID;
     $(selectedID).css('background-color','rgb(179, 240, 247)');
-    placedWordsIndex++;  
+    placedWordsIndex++;
   }
   //backspace/delete
   if(event.keyCode === 8){
     //erase current letter if needed
     let match = $(selectedID).text().match(/[0-9]+/);
     if(match){
-      $(selectedID).text(match[0]);
+      $(selectedID).text('');
+      $(selectedID).append('<sup>'+match[0]+'</sup>');
     } else {
         $(selectedID).text('');
     }
@@ -368,7 +376,8 @@ $(document).on('keydown',function(event){
   if(/[a-zA-Z]/.test(char)){
     let match = $(selectedID).text().match(/[0-9]+/);
     if(match){
-      $(selectedID).text(match[0]+' '+char);
+      $(selectedID).text('');
+      $(selectedID).append('<sup>'+match[0]+'</sup>'+' '+char);
     } else {
         $(selectedID).text(char);
     }

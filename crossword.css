@@ -29,3 +29,7 @@ body {
 .btn-group>.btn:first-child {
     margin-left: 15px;
 }
+
+.numbered::first-letter {
+    color: red;
+}
