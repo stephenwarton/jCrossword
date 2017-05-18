@@ -250,6 +250,24 @@ $('.solve-box').on("click",function(event){
   }
 });
 
+$('.solve-puzzle').on("click",function(event){
+  event.preventDefault();
+  for(let y=0;y<15;y++){
+    for(let x=0;x<15;x++){
+      let id=`#${y}-${x}`;
+      if(crossword[y][x] !== '#'){
+        let match = $(id).text().match(/[0-9]+/);
+        if(match){
+          $(id).text(match[0]+' '+crossword[y][x]);
+        } else {
+            $(id).text(crossword[y][x]);
+        }
+      }
+    }
+  }
+  alert("Cheater!");
+});
+
 function isEqual(y,x,id){
   let match = $(id).text().match(/[A-Z]/);
   if(match){
