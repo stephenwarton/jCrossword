@@ -59,6 +59,8 @@ function main(result){
   placeWords();
   console.log(placedWords);
   displayCrossword();
+  //show cursor at first word
+  $(selectedID).css('background-color','rgb(179, 240, 247)');
   displayClues();
 }
 
@@ -81,13 +83,17 @@ function placeWords(){
 
 function placeFirst(clueAnswerObject){
   let word = clueAnswerObject.word;
-  let y = Math.floor(Math.random() * 14);
+  //don't place word too low
+  let y = Math.floor(Math.random() * 9);
   for(let i=0; i<word.length;i++){
     crossword[y][i] = word.charAt(i);
   }
   clueAnswerObject.startPosition = [y,0];
   clueAnswerObject.direction = 'across';
   placedWords.push(clueAnswerObject);
+  //focus first word
+  selectedID = `#${y}-0`;
+  previousID = selectedID;
 }
 
 function getIndexOfMatch(clueAnswerObject){
@@ -174,10 +180,13 @@ function displayCrossword(){
       $(square).css('width', '3vw');
       $(square).css('height', '3vw');
       $(square).css('border', '1px solid black');
+      $(square).css('min-width', '25px');
+      $(square).css('min-height', '25px');
       if(crossword[i][j]=== '#'){
         $(square).css('background','black');
       } else {
         $(square).css('background','white');
+        $(square).attr('contenteditable','true');
       }
       $('.'+i).append(square);
     }
@@ -204,7 +213,6 @@ function displayClues(){
 $('.crossword').on("click",function(event){
   event.preventDefault();
   let backgroundColor = $(event.target).css('background-color');
-  //$(event.target).css('background-color','black');
   if(backgroundColor === 'rgb(255, 255, 255)'){
     $(previousID).css('background-color','white');
     selectedID = '#'+event.target.id;
@@ -214,8 +222,49 @@ $('.crossword').on("click",function(event){
 });
 
 $(document).on('keydown',function(event){
+  event.preventDefault();
   let char = String.fromCharCode(event.keyCode);
+  if(event.keyCode === 9 || event.keyCode === 32){
+    direction = 'across';
+    goToNext();
+  }
+  if(event.keyCode === 13){
+    direction = 'down';
+    goToNext();
+  }
   if(/[a-zA-Z]/.test(char)){
-    $(selectedID).text(char);
+    let match = $(selectedID).text().match(/[0-9]+/);
+    if(match){
+      $(selectedID).text(match[0]+' '+char);
+    } else {
+        $(selectedID).text(char);
+    }
+    goToNext();
   }
 });
+
+function goToNext(){
+  let nextID = getNextID();
+  if($(nextID).css('background-color') === 'rgb(255, 255, 255)'){
+    $(previousID).css('background-color','white');
+    selectedID = nextID;
+    previousID = selectedID;
+    $(selectedID).css('background-color','rgb(179, 240, 247)');
+  }
+}
+
+function getNextID(){
+  let nextID = '';
+  let index = selectedID.match(/[0-9]+/g);
+  let y = index[0];
+  let x = index[1];
+  if(direction === 'across'){
+    x = parseInt(x)+1;
+    nextID = `#${y}-${x}`;
+  }
+  if(direction === 'down'){
+    y = parseInt(y)+1;
+    nextID = `#${y}-${x}`;
+  }
+  return nextID;
+}
