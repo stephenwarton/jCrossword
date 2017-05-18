@@ -223,7 +223,6 @@ $('.crossword').on("click",function(event){
 
 $('.check-answers').on("click",function(event){
   event.preventDefault();
-
   for(let y=0;y<15;y++){
     for(let x=0;x<15;x++){
       let id=`#${y}-${x}`;
@@ -235,6 +234,19 @@ $('.check-answers').on("click",function(event){
         }
       }
     }
+  }
+});
+
+$('.solve-box').on("click",function(event){
+  event.preventDefault();
+  let index = selectedID.match(/[0-9]+/g);
+  let y = index[0];
+  let x = index[1];
+  let match = $(selectedID).text().match(/[0-9]+/);
+  if(match){
+    $(selectedID).text(match[0]+' '+crossword[y][x]);
+  } else {
+      $(selectedID).text(crossword[y][x]);
   }
 });
 
