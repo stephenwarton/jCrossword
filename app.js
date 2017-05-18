@@ -19,7 +19,7 @@ function createAnswerArray(result){
     let cleanedAnswer = cleanAnswer(object.answer);
     if(cleanedAnswer && object.question !== ''){
       answerObject['word']= cleanedAnswer;
-      answerObject['clue']= object.question + ' (' + object.category.title + ')';
+      answerObject['clue']= '<b>['+object.category.title+']</b> '+ object.question;
       answerArray.push(answerObject);
     }
   }
@@ -57,7 +57,7 @@ function main(result){
   createAnswerArray(result);
   initialize(crossword);
   placeWords();
-  console.log(placedWords);
+  //console.log(placedWords);
   displayCrossword();
   //show cursor at first word
   $(selectedID).css('background-color','rgb(179, 240, 247)');
@@ -265,7 +265,6 @@ $('.solve-puzzle').on("click",function(event){
       }
     }
   }
-  alert("Cheater!");
 });
 
 function isEqual(y,x,id){
