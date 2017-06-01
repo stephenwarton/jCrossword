@@ -1,5 +1,4 @@
-const API_URL = 'https://galvanize-cors-proxy.herokuapp.com/http://jservice.io/api/random?count=50';
-let answerArray = [];
+let potentialWords = [];
 let crossword = [];
 let placedWords = [];
 let selectedID ='';
@@ -10,41 +9,54 @@ let placedWordsIndex = 0;
 $(appReady);
 
 function appReady(){
+  const API_URL = 'https://galvanize-cors-proxy.herokuapp.com/http://jservice.io/api/random?count=100';
   $.get(API_URL)
     .then(main);
 }
 
-function createAnswerArray(result){
-  for(let object of result){
-    let answerObject = {};
-    let cleanedAnswer = cleanAnswer(object.answer);
-    if(cleanedAnswer && object.question !== ''){
-      answerObject['word']= cleanedAnswer;
-      answerObject['clue']= '<b>['+object.category.title+']</b> '+ object.question;
-      answerArray.push(answerObject);
-    }
-  }
-  answerArray.sort(function(a,b){
-    return b.word.length-a.word.length;
-  });
+function main(result){
+  potentialWords = makePotentialWordList(result);
+  crossword = newCrossword();
+  placeWords();
+  displayCrossword();
+  //show cursor at first word
+  $(selectedID).css('background-color','rgb(179, 240, 247)');
+  displayClues();
 }
 
-function cleanAnswer(answerString){
-  let newAnswer = answerString.toUpperCase();
-  if(/^[A-Z]+$/.test(newAnswer)){
-    return newAnswer;
-  } else if(/^THE\s/.test(newAnswer)){
-      return cleanAnswer(newAnswer.slice(4, newAnswer.length));
-  } else if(/^A\s/.test(newAnswer)){
-      return cleanAnswer(newAnswer.slice(2, newAnswer.length));
-  } else if(/^<I>/.test(newAnswer)){
-      return cleanAnswer(newAnswer.slice(3, newAnswer.length-4));
+function makePotentialWordList(result){
+  let words = [];
+  for(let object of result){
+    let wordAndClue = {};
+    let parsedWord = parseWord(object.answer);
+    if(parsedWord.length>1 && object.question !== ''){
+      wordAndClue['word']= parsedWord;
+      wordAndClue['clue']= `<b>[${object.category.title}]</b> ${object.question}`;
+      words.push(wordAndClue);
+    }
+  }
+  //sort array by word length
+  words.sort((a,b) => b.word.length-a.word.length);
+  return words;
+}
+
+function parseWord(wordString){
+  let word = wordString.toUpperCase();
+  if(/^[A-Z]+$/.test(word)){
+    return word;
+  } else if(/^THE\s/.test(word)){
+      return parseWord(word.slice(4, word.length));
+  } else if(/^A\s/.test(word)){
+      return parseWord(word.slice(2, word.length));
+  } else if(/^<I>/.test(word)){
+      return parseWord(word.slice(3, word.length-4));
   } else {
       return '';
   }
 }
 
-function initialize(crossword){
+function newCrossword(){
+  let crossword=[];
   for(let y=0;y<15;y++){
     let array = [];
     for(let x=0;x<15;x++){
@@ -52,55 +64,57 @@ function initialize(crossword){
     }
   crossword.push(array);
   }
-}
-
-function main(result){
-  createAnswerArray(result);
-  initialize(crossword);
-  placeWords();
-  //console.log(placedWords);
-  displayCrossword();
-  //show cursor at first word
-  $(selectedID).css('background-color','rgb(179, 240, 247)');
-  displayClues();
+  return crossword;
 }
 
 function placeWords(){
-  let index = [];
-  for(let i=0;i<answerArray.length;i++){
-    if(placedWords.length === 0 && answerArray[i].word.length <= 15){
-      placeFirst(answerArray[i]);
+  for(let i=0;i<potentialWords.length;i++){
+    let wordAndClue = potentialWords[i];
+    let word = wordAndClue.word;
+    if(placedWords.length === 0 && word.length <= 15){
+      placeFirst(wordAndClue);
     } else {
-        index = getIndexOfMatch(answerArray[i]);
-        //try to place at intersection
-        if(index.length !== 0 && index[2] === 'across'){
-          placeDown(answerArray[i],index[1], index[0]);
-        } else if(index.length !== 0 && index[2] === 'down'){
-          placeAcross(answerArray[i],index[1],index[0]);
-        }
+        attemptPlacement(wordAndClue);
     }
   }
 }
 
-function placeFirst(clueAnswerObject){
-  let word = clueAnswerObject.word;
-  //don't place word too low
-  let y = Math.floor(Math.random() * 9);
+function attemptPlacement(wordAndClue){
+  let index = [];
+  let charStart = 0;
+  let word = wordAndClue.word;
+  let placed = false;
+  while(!placed && charStart<word.length){
+    index = getIndexOfMatch(wordAndClue,charStart);
+    let [crossIndex, charIndex, direction] = index;
+    //try to place at intersection
+    if(index.length !== 0 && direction === 'across'){
+      placed = placeDown(wordAndClue, charIndex, crossIndex);
+    } else if(index.length !== 0 && direction === 'down'){
+      placed = placeAcross(wordAndClue, charIndex, crossIndex);
+    }
+  charStart++;
+  }
+}
+
+function placeFirst(wordAndClue){
+  let word = wordAndClue.word;
+  let y = Math.floor(Math.random() * 14);
   for(let i=0; i<word.length;i++){
     crossword[y][i] = word.charAt(i);
   }
-  clueAnswerObject.startPosition = [y,0];
-  clueAnswerObject.direction = 'across';
-  placedWords.push(clueAnswerObject);
+  wordAndClue.startPosition = [y,0];
+  wordAndClue.direction = 'across';
+  placedWords.push(wordAndClue);
   //focus first word
   selectedID = `#${y}-0`;
   previousID = selectedID;
 }
 
-function getIndexOfMatch(clueAnswerObject){
-  let word = clueAnswerObject.word;
+function getIndexOfMatch(wordAndClue,charStart){
   let index = [];
-  for(let i=0; i<word.length; i++){
+  let word = wordAndClue.word;
+  for(let i=charStart; i<word.length; i++){
     let char = word.charAt(i);
     for(let j=0; j<placedWords.length;j++){
       for(let k=0; k<placedWords[j].word.length;k++){
@@ -122,48 +136,123 @@ function getIndexOfMatch(clueAnswerObject){
 }
 
 function placeDown(clueAnswerObject, charIndex, crossIndex){
+  let placed = false;
   let word = clueAnswerObject.word;
   let aboveAmount = charIndex;
-  let belowAmount = word.length - charIndex;
+  let belowAmount = word.length - charIndex - 1;
   let y = crossIndex[0];
   let x = crossIndex[1];
-  let start = y-aboveAmount;
-  if(start>=0 && y+belowAmount <15 ){
-    if(canBePlaced([start,x],word,'down')){
+  let startIndex = y-aboveAmount;
+  let finishIndex = y+belowAmount;
+  if(startIndex>=0 && finishIndex <15 ){
+    if(canBePlaced([startIndex,x],word,'down',crossIndex)){
+      placed = true;
       //push to placedWords
       clueAnswerObject.direction = 'down';
-      clueAnswerObject.startPosition = [start,x];
+      clueAnswerObject.startPosition = [startIndex,x];
       placedWords.push(clueAnswerObject);
       //add to crossword
       for(let i=0; i<word.length;i++){
-        crossword[start][x] = word.charAt(i);
-        start += 1;
+        crossword[startIndex][x] = word.charAt(i);
+        startIndex += 1;
       }
     }
   }
+  return placed;
 }
 
 function placeAcross(clueAnswerObject, charIndex, crossIndex){
 //todo later
+let placed = false;
+let word = clueAnswerObject.word;
+let leftAmount = charIndex;
+let rightAmount = word.length - charIndex - 1;
+let y = crossIndex[0];
+let x = crossIndex[1];
+let startIndex = x-leftAmount;
+let finishIndex = x+rightAmount;
+if(startIndex>=0 && finishIndex <15 ){
+  if(canBePlaced([y,startIndex],word,'across',crossIndex)){
+    placed = true;
+    //push to placedWords
+    clueAnswerObject.direction = 'across';
+    clueAnswerObject.startPosition = [y,startIndex];
+    placedWords.push(clueAnswerObject);
+    //add to crossword
+    for(let i=0; i<word.length;i++){
+      crossword[y][startIndex] = word.charAt(i);
+      startIndex += 1;
+    }
+  }
+}
+return placed;
 }
 
-function canBePlaced(startIndex,word,direction){
-  let y = startIndex[0];
-  let x = startIndex[1];
+function canBePlaced(startIndex,word,direction,crossIndex){
+  let [y,x] = startIndex;
+  let [yCross,xCross] = crossIndex;
 
   if(direction === 'down'){
+    if(yCross===0 && crossword[1+yCross][xCross] !== '#'){
+      return false;
+    } else if(yCross===14 && crossword[yCross-1][xCross] !== '#'){
+        return false;
+    } else if((yCross>=1 && crossword[yCross-1][xCross] !== '#')|| (yCross<14 && crossword[1+yCross][xCross] !== '#')){
+         return false;
+    }
+
+    if(y>=1 && crossword[y-1][x] !== '#'){
+      return false;
+    } else if(word.length+y<=13 && crossword[word.length+y][x] !== '#'){
+        return false;
+    }
+
+    for(let i=0;i<word.length;i++){
+      //check for another horizontal word here
+      if(crossword[y][x] !== '#' &&  crossword[y][x] !== word.charAt(i)){
+        return false;
+      }
+      //check to see if neighbors are occupied
+      if(crossword[y][x] === '#'){
+        if((x>=1 && crossword[y][x-1] !== '#') || (x<=13 && crossword[y][1+x] !== '#')){
+          return false;
+        } else if((x===0 && crossword[y][1+x] !== '#') || (x===14 && crossword[y][x-1] !== '#')){
+          return false;
+        }
+      }
+      y++;
+    }
+  }
+  else if(direction === 'across'){
+    //todo later
+    if(xCross===0 && crossword[yCross][1+xCross] !== '#'){
+      return false;
+    } else if(xCross===14 && crossword[yCross][xCross-1] !== '#'){
+        return false;
+    } else if((xCross>=1 && crossword[yCross][xCross-1] !== '#')|| (xCross<14 && crossword[yCross][1+xCross] !== '#')){
+         return false;
+    }
+
+    if(x>=1 && crossword[y][x-1] !== '#'){
+      return false;
+    } else if(word.length+x<=13 && crossword[y][word.length+x] !== '#'){
+        return false;
+    }
+
     for(let i=0;i<word.length;i++){
       //check for another vertical word here
       if(crossword[y][x] !== '#' &&  crossword[y][x] !== word.charAt(i)){
         return false;
-
-        //check to see if neighbors are occupied
-      } else if(crossword[y][x] === '#'){
-          if(crossword[y][x-1] !== '#' || crossword[y][1+x] !== '#'){
-            return false;
-          }
       }
-      y++;
+      //check to see if neighbors are occupied
+      if(crossword[y][x] === '#'){
+        if((y>=1 && crossword[y-1][x] !== '#') || (y<=13 && crossword[1+y][x] !== '#')){
+          return false;
+        } else if((y===0 && crossword[1+y][x] !== '#') || (y===14 && crossword[y-1][x] !== '#')){
+          return false;
+        }
+      }
+      x++;
     }
   }
   return true;
@@ -199,21 +288,43 @@ function displayCrossword(){
 }
 
 function displayClues(){
+  let startPositions = [];
   let clueNumber = 1;
-  for(let object of placedWords){
-    let y = object.startPosition[0];
-    let x = object.startPosition[1];
-    let clue = $(`<p>${clueNumber}. ${object.clue}</p><p><button type="button" class="btn btn-default reveal solve-${y}-${x}">Reveal Word for Clue ${clueNumber}</button></p`);
-    if(object.direction === 'across'){
+  let lastClueNumber, y, x, clue,direction;
+  let acrossClues =[];
+  let downClues = [];
+  for(let i=0;i<placedWords.length;i++){
+    y = placedWords[i].startPosition[0];
+    x = placedWords[i].startPosition[1];
+    direction = placedWords[i].direction;
+    if(alreadyHasPosition(placedWords[i].startPosition,startPositions)){
+      lastClueNumber = clueNumber;
+      clueNumber = alreadyHasPosition(placedWords[i].startPosition,startPositions);
+      clue = $(`<p>${clueNumber}. ${placedWords[i].clue}</p><p><button type="button" class="btn btn-default reveal" name="${i}">Reveal Word for Clue ${clueNumber}-${direction}</button></p`);
+      clueNumber = lastClueNumber;
+    } else{
+      startPositions.push([y,x,clueNumber]);
+      //add clue number to crossword puzzle
+      let id = '#'+y+'-'+x;
+      $(''+id).append('<sup>'+clueNumber+'</sup>');
+      clue = $(`<p>${clueNumber}. ${placedWords[i].clue}</p><p><button type="button" class="btn btn-default reveal" name="${i}">Reveal Word for Clue ${clueNumber}-${direction}</button></p`);
+    }
+    clueNumber++;
+    if(placedWords[i].direction === 'across'){
       $('.across').append(clue);
-    } else if(object.direction === 'down'){
+    } else if(placedWords[i].direction === 'down'){
       $('.down').append(clue);
     }
-    //add clue number to crossword puzzle
-    id = '#'+y+'-'+x;
-    $(''+id).append('<sup>'+clueNumber+'</sup>');
-    clueNumber++;
   }
+}
+
+function alreadyHasPosition(startPosition,arrayOfStarts){
+  for(let i=0;i<arrayOfStarts.length;i++){
+    if(arrayOfStarts[i][0] === startPosition[0] && arrayOfStarts[i][1]===startPosition[1]){
+      return arrayOfStarts[i][2];
+    }
+  }
+  return false;
 }
 
 $('.crossword').on("click",function(event){
@@ -286,9 +397,8 @@ $('.solve-puzzle').on("click",function(event){
 });
 
 $('p').on("click", '.reveal', function(){
-  let buttonText = $(this).text();
-  let clueNumber = buttonText.charAt(buttonText.length-1);
-  let wordObject = placedWords[parseInt(clueNumber)-1];
+  let index = $(this).attr("name");
+  let wordObject = placedWords[parseInt(index)];
   let word = wordObject.word;
   let y=wordObject.startPosition[0];
   let x=wordObject.startPosition[1];
