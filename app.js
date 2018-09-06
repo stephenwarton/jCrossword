@@ -9,7 +9,7 @@ let placedWordsIndex = 0;
 $(appReady);
 
 function appReady(){
-  const API_URL = 'https://galvanize-cors-proxy.herokuapp.com/http://jservice.io/api/random?count=100';
+  const API_URL = 'https://jcrossword.herokuapp.com/api/v1/jcrossword';
   $.get(API_URL)
     .then(main);
 }
